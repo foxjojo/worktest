@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QGridLay
 from PyQt5.QtGui import QIcon, QPixmap, QPainter, QResizeEvent
 from PyQt5.Qt import QMediaPlayer, QUrl, QMediaContent
 import requests
+
+import re
 from pydub import AudioSegment
 
 lrcFilePath = "D:/5sing/lrc/" 
@@ -94,12 +96,12 @@ class Example(QWidget):
         html = requests.get(
             "http://service.5sing.kugou.com/song/find?songinfo=yc$3504548")
         print(html.json())
+        print(html.json()[0]["id"])
         aa = requests.get(html.json()[0]["avatar"])
-
-        with open(lrcFilePath + 'test.5sing', 'wb') as lrcFile:
-            lrcFile.writelines(
-                str(html.json()[0]["id"]) + "\n" + html.json()[0]["songname"] +
-                "\n" + html.json()[0]["nickname"] + "\n")
+        temp = str(html.json()[0]["id"]) + '\n' + html.json()[0]["songname"] + '\n' + html.json()[0]["nickname"] + '\n'
+        print(temp)
+        with open(lrcFilePath + 'test.5sing', 'w') as lrcFile:
+            lrcFile.writelines(temp)
         with open(picFilePath + 'test.jpg', 'wb') as lrcFile:
             lrcFile.write(aa.content)
         self.LrcData()
@@ -109,7 +111,9 @@ class Example(QWidget):
                                                      self.height() * 0.2))
         self.la.setScaledContents(True)
         self.la.resize(self.height() * 0.2, self.height() * 0.2)
+        
 
+        self.song = QMediaPlayer()
         self.song.setMedia(QMediaContent(QUrl(html.json()[0]["sign"])))
         self.song.setVolume(50)
         self.song.play()
@@ -119,9 +123,8 @@ class Example(QWidget):
         lrcJson = requests.get(
             "http://5sing.kugou.com/fm/m/json/lrc?songId=3504548&songType=yc"
         )  #测试代码
-        print(lrcJson.json())
         lrcFile = open(lrcFilePath + 'test.5sing', 'a')
-        if lrcJson.json()['isSuccess'] == 'true':  #请求成功
+        if lrcJson.json()['isSuccess'] == True:  #请求成功
             if lrcJson.json()['lrc']['type'] == 1:  #支持滚动
                 for l in lrcJson.json()['lrc']['data']['lrc']:
                     print(l['time'])
@@ -134,7 +137,14 @@ class Example(QWidget):
 
         return lrcJson.json()
 
-    def lrcScroll(self, nowTime, lrcJson):
+    def lrcScroll(self, nowTime, lrcName):
+        #lrcFile = open(lrcFilePath + lrcName + '.5sing', 'r')
+        lrcList = []
+        with open(lrcFilePath + 'test.5sing', 'r') as lrcFile:#测试
+            lrcList = lrcFile.readlines()
+        i = 0
+        while i < len(lrcList):
+            lrcList[i].
         #readline()
         pass
 
