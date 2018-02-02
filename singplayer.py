@@ -5,7 +5,7 @@ from PyQt5.Qt import QMediaPlayer, QUrl, QMediaContent
 import requests
 from pydub import AudioSegment
 
-lrcFilePath = "D:/5sing/lrc/"
+lrcFilePath = "D:/5sing/lrc/" 
 picFilePath = "D:/5sing/pic/"
 
 
