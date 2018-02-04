@@ -3,9 +3,14 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QGridLay
 from PyQt5.QtGui import QIcon, QPixmap, QPainter, QResizeEvent
 from PyQt5.Qt import QMediaPlayer, QUrl, QMediaContent
 import requests
+<<<<<<< HEAD
 import time
 import re
 import threading
+=======
+
+import re
+>>>>>>> 947e9d16db29153efe0c8179f96240e63691d6ef
 from pydub import AudioSegment
 import bs4
 from functools import partial  
@@ -167,8 +172,12 @@ class Example(QWidget):
         self.la.setScaledContents(True)
         self.la.resize(self.height() * 0.2, self.height() * 0.2)
         
+<<<<<<< HEAD
 
+=======
+>>>>>>> 947e9d16db29153efe0c8179f96240e63691d6ef
 
+        self.song = QMediaPlayer()
         self.song.setMedia(QMediaContent(QUrl(html.json()[0]["sign"])))
         self.song.setVolume(50)
         self.song.play()
@@ -198,12 +207,19 @@ class Example(QWidget):
         else:
             pass
 
+<<<<<<< HEAD
     def lrcScroll(self, lrcName):
+=======
+        return lrcJson.json()
+
+    def lrcScroll(self, nowTime, lrcName):
+>>>>>>> 947e9d16db29153efe0c8179f96240e63691d6ef
         #lrcFile = open(lrcFilePath + lrcName + '.5sing', 'r')
         lrcList = []
         with open(lrcFilePath + 'test.5sing', 'r') as lrcFile:#测试
             lrcList = lrcFile.readlines()
         i = 0
+<<<<<<< HEAD
         if self.song.state() == 1:
             while i < len(lrcList): 
                 if re.match(r"\d+\s{1}\S", lrcList[i]) != None:
@@ -224,6 +240,12 @@ class Example(QWidget):
 
                 else:
                     i = i + 1
+=======
+        while i < len(lrcList):
+            lrcList[i].
+        #readline()
+        pass
+>>>>>>> 947e9d16db29153efe0c8179f96240e63691d6ef
 
 
 class Lrc(QLabel):
