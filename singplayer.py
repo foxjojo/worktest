@@ -3,14 +3,9 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QGridLay
 from PyQt5.QtGui import QIcon, QPixmap, QPainter, QResizeEvent
 from PyQt5.Qt import QMediaPlayer, QUrl, QMediaContent
 import requests
-<<<<<<< HEAD
 import time
 import re
 import threading
-=======
-
-import re
->>>>>>> 947e9d16db29153efe0c8179f96240e63691d6ef
 from pydub import AudioSegment
 import bs4
 from functools import partial  
@@ -18,50 +13,6 @@ from functools import partial
 lrcFilePath = "D:/5sing/lrc/" 
 picFilePath = "D:/5sing/pic/"
 
-
-class web(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.initUI()
-
-    def initUI(self):
-        self.resize(700, 200)
-        self.setWindowTitle('5SING')
-        self.scrollWidget = QScrollArea()
-        self.childLayout = QVBoxLayout()
-        self.mainLayout = QVBoxLayout()
-        self.mainWidget = QWidget()
-
-        html = requests.get("http://5sing.kugou.com/top/")#原创音乐榜
-        bsObj = bs4.BeautifulSoup(html.content, "html.parser")
-        rank_list = bsObj.find('div',class_="rank_list")
-        list_one = rank_list.find_all('tr')
-        for one in list_one[1:]:
-            val = one.find('td', class_="r_td_1").find('input').get('value')#js参数
-            name = one.find('td', class_="r_td_3").find_all('a')[-1]['title']#.get_text()#歌曲名
-            print(val)
-            print(name)
-            temp = QPushButton(name)
-            temp.clicked.connect(partial(self.playInfmation, val))
-            '''
-            temp.clicked.clicked.connect(lambda: self.playInfmation(val))  
-            使用lambda表达式所有信号槽的参数都会被修改为循环最后一次所要传递的参数
-            用partial才不会出错
-            from functools import partial  
-            '''
-
-            self.childLayout.addWidget(temp)
-        
-        self.mainWidget.setLayout(self.childLayout)
-        self.scrollWidget.setWidget(self.mainWidget)
-        self.scrollWidget.setAutoFillBackground(True)
-        self.scrollWidget.setWidgetResizable(True)
-        self.mainLayout.addWidget(self.scrollWidget)
-        self.setLayout(self.mainLayout)
-        self.show()
-
-    def playInfmation(self, value):
-        print(value)
 
 
 class Example(QWidget):
@@ -74,7 +25,7 @@ class Example(QWidget):
 
         #布局管理器
         layout = QGridLayout()
-        mainLayout = QGridLayout()
+        self.mainLayout = QGridLayout()
 
         #歌词计时器
         self.startTimer(100)
@@ -100,33 +51,68 @@ class Example(QWidget):
         #播放载体
         self.song = QMediaPlayer()
 
-
         #播放按钮
         self.buttonplay = QPushButton(self)
         self.buttonplay.setText("play")
         self.buttonplay.setStyleSheet("color: blue")
         self.buttonplay.clicked.connect(self.play)
 
-                #测试网页按钮
+        #测试网页按钮
         self.button1 = QPushButton(self)
         self.button1.setText("排行榜")
-        self.button1.clicked.connect(self.web)
+        self.button1.clicked.connect(self.webb)
 
         #添加布局
-        mainLayout.addWidget(self.lrcLabel, 0, 0)
+        self.mainLayout.addWidget(self.lrcLabel, 0, 0)
         layout.addWidget(self.la, 1, 0)
         layout.addWidget(self.button, 1, 1)
         layout.addWidget(self.buttonplay, 1, 2)
         layout.addWidget(self.button1,1,3)
 
-        mainLayout.addLayout(layout, 1, 0)
-        self.setLayout(mainLayout)
-
+        self.mainLayout.addLayout(layout, 1, 0)
+        self.setLayout(self.mainLayout)
 
         #self.song = AudioSegment.from_mp3("C:/Users/14514/Music/萧忆情Alex - 十二镇魂歌（Cover 星尘）.mp3")
         self.show()
-    def web(self):
-        a = web()
+
+    def webb(self):
+        a = self.webRank()
+        self.mainLayout.replaceWidget(self.lrcLabel,a)
+
+    def webRank(self):
+        scrollWidget = QScrollArea()
+        childLayout = QVBoxLayout()
+        mainWidget = QWidget()
+
+        html = requests.get("http://5sing.kugou.com/top/")#原创音乐榜
+        bsObj = bs4.BeautifulSoup(html.content, "html.parser")
+        rank_list = bsObj.find('div',class_="rank_list")
+        list_one = rank_list.find_all('tr')
+        for one in list_one[1:]:
+            val = one.find('td', class_="r_td_1").find('input').get('value')#js参数
+            name = one.find('td', class_="r_td_3").find_all('a')[-1]['title']#.get_text()#歌曲名
+            print(val)
+            print(name)
+            temp = QPushButton(name)
+            temp.clicked.connect(partial(self.playInfmation, val))
+            '''
+            temp.clicked.clicked.connect(lambda: self.playInfmation(val))  
+            使用lambda表达式所有信号槽的参数都会被修改为循环最后一次所要传递的参数
+            用partial才不会出错
+            from functools import partial  
+            '''
+            childLayout.addWidget(temp)
+        
+        mainWidget.setLayout(childLayout)
+        scrollWidget.setWidget(mainWidget)
+        scrollWidget.setAutoFillBackground(True)
+        scrollWidget.setWidgetResizable(True)
+        return scrollWidget
+
+    def playInfmation(self, value):
+
+        print(value)
+
     def resizeEvent(self, size):
         #窗口大小改变事件
         self.resize(size.size())
@@ -139,7 +125,7 @@ class Example(QWidget):
             pass
 
     def play(self):
-        #暂停及播放函数
+        # 暂停及播放函数
         # QMediaPlayer::StoppedState	0	The media player is not playing content, playback will begin from the start of the current track.
         # QMediaPlayer::PlayingState	1	The media player is currently playing content.
         # QMediaPlayer::PausedState	    2	The media player has paused playback, playback of the current track will resume from the position the player was paused at.
@@ -172,10 +158,6 @@ class Example(QWidget):
         self.la.setScaledContents(True)
         self.la.resize(self.height() * 0.2, self.height() * 0.2)
         
-<<<<<<< HEAD
-
-=======
->>>>>>> 947e9d16db29153efe0c8179f96240e63691d6ef
 
         self.song = QMediaPlayer()
         self.song.setMedia(QMediaContent(QUrl(html.json()[0]["sign"])))
@@ -207,19 +189,12 @@ class Example(QWidget):
         else:
             pass
 
-<<<<<<< HEAD
     def lrcScroll(self, lrcName):
-=======
-        return lrcJson.json()
-
-    def lrcScroll(self, nowTime, lrcName):
->>>>>>> 947e9d16db29153efe0c8179f96240e63691d6ef
         #lrcFile = open(lrcFilePath + lrcName + '.5sing', 'r')
         lrcList = []
         with open(lrcFilePath + 'test.5sing', 'r') as lrcFile:#测试
             lrcList = lrcFile.readlines()
         i = 0
-<<<<<<< HEAD
         if self.song.state() == 1:
             while i < len(lrcList): 
                 if re.match(r"\d+\s{1}\S", lrcList[i]) != None:
@@ -240,13 +215,6 @@ class Example(QWidget):
 
                 else:
                     i = i + 1
-=======
-        while i < len(lrcList):
-            lrcList[i].
-        #readline()
-        pass
->>>>>>> 947e9d16db29153efe0c8179f96240e63691d6ef
-
 
 class Lrc(QLabel):
     def funcname(self, parameter_list):
