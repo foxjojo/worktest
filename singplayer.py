@@ -5,6 +5,7 @@ from PyQt5.Qt import QMediaPlayer, QUrl, QMediaContent
 import requests
 import time
 import re
+import copy
 import threading
 from pydub import AudioSegment
 import bs4
@@ -22,7 +23,7 @@ class Example(QWidget):
 
     def initUI(self):
         self.setWindowTitle('5SING')
-
+        self.resize(700,500)
         #布局管理器
         layout = QGridLayout()
         self.mainLayout = QGridLayout()
@@ -42,11 +43,12 @@ class Example(QWidget):
         #                                 self.height() * 0.8))
         self.lrcLabel.resize(self.width(), self.height() * 0.8)
         self.lrcLabel.setScaledContents(True)
+        self.tempWebRank = self.lrcLabel
 
         #测试按钮
         self.button = QPushButton(self)
-        self.button.setText("按一下")
-        self.button.clicked.connect(self.test)
+        self.button.setText("歌词")
+        self.button.clicked.connect(self.lrcDisplay)
 
         #播放载体
         self.song = QMediaPlayer()
@@ -74,10 +76,23 @@ class Example(QWidget):
 
         #self.song = AudioSegment.from_mp3("C:/Users/14514/Music/萧忆情Alex - 十二镇魂歌（Cover 星尘）.mp3")
         self.show()
+    def lrcDisplay(self):
+        self.tempWebRank.close()
+        qLabell = QLabel(self)
+        qLabell.setText("Loading")
+        self.mainLayout.replaceWidget(self.tempWebRank,qLabell)
+        self.tempWebRank = qLabell
+        t = threading.Thread(target=self.lrcScroll, args=("songid", qLabell))
+        t.start()
+        t.setName("lrcThreading")
+        
 
     def webb(self):
         a = self.webRank()
-        self.mainLayout.replaceWidget(self.lrcLabel,a)
+        t = threading.Thread(target=self.webRank, args=())
+        t.start()
+        t.setName("webRank")
+
 
     def webRank(self):
         scrollWidget = QScrollArea()
@@ -107,11 +122,14 @@ class Example(QWidget):
         scrollWidget.setWidget(mainWidget)
         scrollWidget.setAutoFillBackground(True)
         scrollWidget.setWidgetResizable(True)
-        return scrollWidget
+
+        self.mainLayout.replaceWidget(self.tempWebRank,scrollWidget)
+        self.tempWebRank = scrollWidget
+        return
 
     def playInfmation(self, value):
-
-        print(value)
+        self.test(value[:-3])
+        self.LrcData(value[:-3],value[-2:])
 
     def resizeEvent(self, size):
         #窗口大小改变事件
@@ -137,10 +155,16 @@ class Example(QWidget):
             self.song.play()
             self.buttonplay.setText("pause")
 
-    def test(self):
+    def test(self, songId):
+        print(songId)
+        for a in threading.enumerate():
+            if a.getName() == "lrcThreading":
+                print(a)
         #json测试函数
         html = requests.get(
-            "http://service.5sing.kugou.com/song/find?songinfo=yc$3504548")
+            "http://service.5sing.kugou.com/song/find?songinfo=yc$"+songId)
+        # html = requests.get(
+        #     "http://service.5sing.kugou.com/song/find?songinfo=yc$3504548")
         print(html.json())
         print(html.json()[0]["id"])
         aa = requests.get(html.json()[0]["avatar"])
@@ -148,12 +172,12 @@ class Example(QWidget):
         print(temp)
         with open(lrcFilePath + 'test.5sing', 'w') as lrcFile:
             lrcFile.writelines(temp)
-        with open(picFilePath + 'test.jpg', 'wb') as lrcFile:
+        with open(picFilePath + 'test'+html.json()[0]["avatar"][-4:], 'wb') as lrcFile:
             lrcFile.write(aa.content)
         self.LrcData()
 
         self.la.setPixmap(
-            QPixmap(picFilePath + "test.jpg").scaled(self.height() * 0.2,
+            QPixmap(picFilePath + 'test'+html.json()[0]["avatar"][-4:]).scaled(self.height() * 0.2,
                                                      self.height() * 0.2))
         self.la.setScaledContents(True)
         self.la.resize(self.height() * 0.2, self.height() * 0.2)
@@ -163,14 +187,15 @@ class Example(QWidget):
         self.song.setMedia(QMediaContent(QUrl(html.json()[0]["sign"])))
         self.song.setVolume(50)
         self.song.play()
-        t = threading.Thread(target=self.lrcScroll, args=(" ", ))
-        t.start()
 
-    def LrcData(self, nowTime="", songId="", songType=""):
-        #lrcJson = requests.get("http://5sing.kugou.com/fm/m/json/lrc?songId="+ songId +"&songType="+ songType)
-        lrcJson = requests.get(
-            "http://5sing.kugou.com/fm/m/json/lrc?songId=3504548&songType=yc"
-        )  #测试代码
+
+    def LrcData(self, songId="", songType=""):
+        print(songType)
+        print(songId)
+        lrcJson = requests.get("http://5sing.kugou.com/fm/m/json/lrc?songId="+ songId +"&songType="+ songType)
+        # lrcJson = requests.get(
+        #     "http://5sing.kugou.com/fm/m/json/lrc?songId=3504548&songType=yc"
+        # )  #测试代码
         lrcFile = open(lrcFilePath + 'test.5sing', 'a')
         if lrcJson.json()['isSuccess'] == True:  #请求成功
             if lrcJson.json()['lrc']['type'] == 1:  #支持滚动
@@ -189,7 +214,7 @@ class Example(QWidget):
         else:
             pass
 
-    def lrcScroll(self, lrcName):
+    def lrcScroll(self, lrcName, qLabel):
         #lrcFile = open(lrcFilePath + lrcName + '.5sing', 'r')
         lrcList = []
         with open(lrcFilePath + 'test.5sing', 'r') as lrcFile:#测试
@@ -206,8 +231,9 @@ class Example(QWidget):
                         else:
                             try:
                                 a = lrcList[i-1].split(' ',1)[1]
-                                if self.lrcLabel.text != a:
-                                    self.lrcLabel.setText(a)
+                                if qLabel.text() != a:
+                                    qLabel.setText(a)
+                                    pass
                                 else:
                                     pass
                             except :
@@ -216,9 +242,6 @@ class Example(QWidget):
                 else:
                     i = i + 1
 
-class Lrc(QLabel):
-    def funcname(self, parameter_list):
-        pass
 
 
 if __name__ == '__main__':
