@@ -8,7 +8,6 @@ import time
 import re
 import copy
 import threading
-from pydub import AudioSegment
 import bs4
 from functools import partial  
 
