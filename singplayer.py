@@ -1,4 +1,5 @@
 import sys
+import os
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QGridLayout,QVBoxLayout,QScrollArea
 from PyQt5.QtGui import QIcon, QPixmap, QPainter, QResizeEvent
 from PyQt5.Qt import QMediaPlayer, QUrl, QMediaContent
@@ -11,8 +12,8 @@ from pydub import AudioSegment
 import bs4
 from functools import partial  
 
-lrcFilePath = "D:/5sing/lrc/" 
-picFilePath = "D:/5sing/pic/"
+lrcFilePath = "E:/5sing/lrc/" 
+picFilePath = "E:/5sing/pic/"
 
 
 
@@ -22,6 +23,13 @@ class Example(QWidget):
         self.initUI()
 
     def initUI(self):
+        #初始化目录
+        if(os.path.exists(lrcFilePath) == False):
+            os.makedirs(lrcFilePath)
+        if(os.path.exists(picFilePath) == False):
+            os.makedirs(picFilePath)
+
+
         self.setWindowTitle('5SING')
         self.resize(700,500)
         #布局管理器
@@ -62,7 +70,7 @@ class Example(QWidget):
         #测试网页按钮
         self.button1 = QPushButton(self)
         self.button1.setText("排行榜")
-        self.button1.clicked.connect(self.webb)
+        self.button1.clicked.connect(self.web)
 
         #添加布局
         self.mainLayout.addWidget(self.lrcLabel, 0, 0)
@@ -87,7 +95,7 @@ class Example(QWidget):
         t.setName("lrcThreading")
         
 
-    def webb(self):
+    def web(self):
         a = self.webRank()
         t = threading.Thread(target=self.webRank, args=())
         t.start()
